@@ -13,7 +13,7 @@ const handleCreateUrl = async (req, res) => {
         const user = await User.findOne({email: req.user.email});
         const userId = user._id;
         const shortId = shortid();
-        const expirationDate = new Date(expiration);
+        const expirationDate = expiration ? new Date(expiration) : null;
         const url = new Url({
             shortId,
             redirectUrl,

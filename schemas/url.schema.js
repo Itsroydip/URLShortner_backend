@@ -15,7 +15,7 @@
      },
      expiration: {
          type: Date,
-         required: true
+         default: null
      },
      visitHistory: [{
         timestamp:{type:Number},

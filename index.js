@@ -5,7 +5,8 @@ env.config();
 const {connectToMongoDB} = require('./connect')
 const MONGO_URI = process.env.MONGO_URI;
 const userRoutes = require('./routes/user');
-const urlRoutes = require('./routes/url')
+const urlRoutes = require('./routes/url');
+const handleRedirect = require('./controllers/redirect');
 const cors = require('cors');
 const PORT = process.env.PORT || 3000;
 
@@ -26,6 +27,7 @@ app.use(express.urlencoded({extended:true}));
 //define api routes
 app.use("/api/user", userRoutes);
 app.use("/api/url", urlRoutes);
+app.get("/:shortid", handleRedirect);
 
 // default route
 app.get("/",(req,res)=>{
