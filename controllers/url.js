@@ -36,6 +36,68 @@ const handleCreateUrl = async (req, res) => {
 };
 
 
+const handleFetchUrl = async (req, res) => {
+    try {
+        const user = await User.findOne({email: req.user.email});
+        const userId = user._id;
+        const urls = await Url.find({userId});
+        res.status(200).json(urls);
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            message: "Server error"
+        });
+    }
+
+}
+
+
+const handleEditUrl = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { redirectUrl, remarks, expiration } = req.body;
+        const url = await Url.findById(id);
+        if (!url) {
+            return res.status(400).json({ message: "Url not found" });
+        }
+
+        url.redirectUrl = redirectUrl;
+        url.remarks = remarks;
+        url.expiration = expiration;
+        await url.save();
+        res.status(200).json({ message: "Url updated successfully" });
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            message: "Server error"
+        });
+    }
+}
+
+
+const handleDeleteUrl = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const url = await Url.findById(id);
+        if (!url) {
+            return res.status(400).json({ message: "Url not found" });
+        }
+        await url.deleteOne({ _id: id });
+        res.status(200).json({ message: "Url deleted successfully" });
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            message: "Server error"
+        });
+    }
+}
+
 module.exports = {
-    handleCreateUrl
+    handleCreateUrl,
+    handleFetchUrl,
+    handleEditUrl,
+    handleDeleteUrl
 }

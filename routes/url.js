@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const {handleCreateUrl} = require('../controllers/url');
+const {handleCreateUrl, handleFetchUrl, handleEditUrl, handleDeleteUrl} = require('../controllers/url');
 const isLoggedIn = require("../middlewares/auth");
 
 router.post("/create", isLoggedIn, handleCreateUrl);
-// router.post("/signin", handleSignIn);
-// router.put("/:id", isLoggedIn, handleEditUser);
-// router.delete("/:id", isLoggedIn, handleDeleteUser);
+router.get("/", isLoggedIn, handleFetchUrl);
+router.put("/:id", isLoggedIn, handleEditUrl);
+router.delete("/:id", isLoggedIn, handleDeleteUrl);
 
 
 module.exports = router; 
