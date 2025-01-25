@@ -1,5 +1,4 @@
 const Url = require("../schemas/url.schema");
-const User = require("../schemas/user.schema");
 const DeviceDetector = require("device-detector-js");
 
 const handleRedirect = async (req, res) => {

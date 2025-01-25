@@ -27,6 +27,8 @@ app.use(express.urlencoded({extended:true}));
 //define api routes
 app.use("/api/user", userRoutes);
 app.use("/api/url", urlRoutes);
+
+//redirect route
 app.get("/:shortid", handleRedirect);
 
 // default route
