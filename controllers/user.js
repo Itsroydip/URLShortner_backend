@@ -47,7 +47,7 @@ const handleSignIn = async(req,res)=>{
                 return;
             }
             const token = jwt.sign({email},process.env.JWT_SECRET);
-            res.status(200).json({message:"Login successfull", token, id:isUserExist._id})
+            res.status(200).json({message:"Login successfull", token, id:isUserExist._id, name:isUserExist.name});
 
         }
     } catch (err) {
