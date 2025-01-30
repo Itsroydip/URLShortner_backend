@@ -45,14 +45,18 @@ const handleFetchUrl = async (req, res) => {
 
         const user = await User.findOne({email: req.user.email});
         const userId = user._id;
+        const totalCount = await Url.find({userId});
         const urls = await Url.find({userId})
             .limit(pageSize)
             .skip((page - 1) * pageSize);
 
-        res.status(200).json(urls);
+        res.status(200).json({ 
+            totalCount: totalCount.length,
+            data: urls
+        });
 
     } catch (error) {
-        console.log(error);
+        console.log(error); 
         res.status(500).json({
             message: "Server error"
         });
