@@ -37,10 +37,18 @@ const handleCreateUrl = async (req, res) => {
 
 
 const handleFetchUrl = async (req, res) => {
+    let { page, pageSize } = req.query;
+
     try {
+        page = parseInt(page, 10) || 1;
+        pageSize = parseInt(pageSize, 10) || 50;
+
         const user = await User.findOne({email: req.user.email});
         const userId = user._id;
-        const urls = await Url.find({userId});
+        const urls = await Url.find({userId})
+            .limit(pageSize)
+            .skip((page - 1) * pageSize);
+
         res.status(200).json(urls);
 
     } catch (error) {
