@@ -107,9 +107,55 @@ const handleDeleteUrl = async (req, res) => {
     }
 }
 
+const handleAnalytics = async (req,res) => {
+
+    try {
+        const user = await User.findOne({email: req.user.email});
+        const analyticsData = await Url.aggregate([
+            // Unwind the visitHistory array
+            {$match: { 
+                userId: user._id,
+              }}, 
+
+            { $unwind: "$visitHistory" },
+    
+            // Project only the fields we need
+            {
+              $project: {
+                timestamp: "$visitHistory.timestamp",
+                originalLink: "$redirectUrl",
+                shortId: "$shortId",
+                ipAddress: "$visitHistory.ip",
+                userDevice: "$visitHistory.device",
+              },
+            },
+    
+            // Sort by timestamp in descending order
+            { $sort: { timestamp: -1 } },
+    
+            // Limit to 1000 results (adjust as needed)
+            { $limit: 1000 },
+          ])
+          
+        
+
+        res.status(200).json({ 
+            analyticsData
+        });
+
+    } catch (error) {
+        console.log(error); 
+        res.status(500).json({
+            message: "Server error"
+        });
+    }
+
+}
+
 module.exports = {
     handleCreateUrl,
     handleFetchUrl,
     handleEditUrl,
-    handleDeleteUrl
+    handleDeleteUrl,
+    handleAnalytics
 }
