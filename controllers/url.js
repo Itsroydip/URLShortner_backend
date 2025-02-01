@@ -152,10 +152,197 @@ const handleAnalytics = async (req,res) => {
 
 }
 
+const handleClickData = async (req,res) => {
+    const currentDate = new Date().getTime();
+    const oneYearAgo =currentDate - (24*60*60*1000*365);
+
+    try{
+        const startDate = oneYearAgo;
+        const endDate = currentDate;
+
+        const user = await User.findOne({email: req.user.email});
+
+
+        // Prepare date range filter
+        const dateFilter = {}
+        if (startDate) {
+        dateFilter.$gte = startDate
+        }
+        if (endDate) {
+        dateFilter.$lte = endDate
+        }
+
+        console.log(dateFilter)
+
+        const dateWiseClicks = await Url.aggregate([
+            { $match: { userId: user._id } },
+      { $unwind: "$visitHistory" },
+      {
+        $match: {
+          "visitHistory.timestamp": dateFilter,
+        },
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: "%Y-%m-%d", date: { $toDate: "$visitHistory.timestamp" } },
+          },
+          dailyClicks: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } },
+      {
+        $group: {
+          _id: null,
+          dates: {
+            $push: {
+              date: "$_id",
+              dailyClicks: "$dailyClicks",
+            },
+          },
+          totalClicks: { $sum: "$dailyClicks" },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          data: {
+            $map: {
+              input: {
+                $range: [0, { $size: "$dates" }],
+              },
+              as: "index",
+              in: {
+                date: { $arrayElemAt: ["$dates.date", "$$index"] },
+                clicks: {
+                  $sum: {
+                    $slice: ["$dates.dailyClicks", { $add: ["$$index", 1] }],
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      { $unwind: "$data" },
+      { $replaceRoot: { newRoot: "$data" } },
+      { $sort: { date: -1 } },
+          ])
+
+        res.status(200).json(
+            dateWiseClicks
+        );
+
+
+    }catch (error) {
+        console.log(error); 
+        res.status(500).json({
+            message: "Server error"
+        });
+    }
+    
+
+}
+
+const handleDeviceInfo = async (req,res) => {
+    const currentDate = new Date().getTime();
+    const oneYearAgo =currentDate - (24*60*60*1000*365);
+
+    try{
+        const startDate = oneYearAgo;
+        const endDate = currentDate;
+
+        const user = await User.findOne({email: req.user.email});
+
+
+        // Prepare date range filter
+        const dateFilter = {}
+        if (startDate) {
+        dateFilter.$gte = startDate
+        }
+        if (endDate) {
+        dateFilter.$lte = endDate
+        }
+
+        console.log(dateFilter)
+
+      
+        const deviceClicks = await Url.aggregate([
+
+            { $match: { userId: user._id } },
+            { $unwind: "$visitHistory" },
+            {
+              $match: {
+                "visitHistory.timestamp": dateFilter,
+              },
+            },
+            {
+              $group: {
+                _id: {
+                  $switch: {
+                    branches: [
+                      { case: { $regexMatch: { input: "$visitHistory.device", regex: /desktop/i } }, then: "Desktop" },
+                      {
+                        case: { $regexMatch: { input: "$visitHistory.device", regex: /mobile|android|iphone/i } },
+                        then: "Mobile",
+                      },
+                      { case: { $regexMatch: { input: "$visitHistory.device", regex: /tablet|ipad/i } }, then: "Tablet" },
+                    ],
+                    default: "Others",
+                  },
+                },
+                clicks: { $sum: 1 },
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                totalClicks: { $sum: "$clicks" },
+                devices: { $push: { device: "$_id", clicks: "$clicks" } },
+              },
+            },
+            {
+              $project: {
+                _id: 0,
+                totalClicks: 1,
+                devices: {
+                  $map: {
+                    input: "$devices",
+                    as: "device",
+                    in: {
+                      device: "$$device.device",
+                      clicks: "$$device.clicks",
+                      percentage: {
+                        $round: [{ $multiply: [{ $divide: ["$$device.clicks", "$totalClicks"] }, 100] }, 2],
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          ])
+
+        res.status(200).json(
+            deviceClicks
+        );
+
+
+    }catch (error) {
+        console.log(error); 
+        res.status(500).json({
+            message: "Server error"
+        });
+    }
+    
+
+}
+
 module.exports = {
     handleCreateUrl,
     handleFetchUrl,
     handleEditUrl,
     handleDeleteUrl,
-    handleAnalytics
+    handleAnalytics,
+    handleClickData,
+    handleDeviceInfo
 }
