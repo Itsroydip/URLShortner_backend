@@ -56,6 +56,23 @@ const handleSignIn = async(req,res)=>{
     }
 }
 
+
+const handleGetUser = async (req,res) => {
+    try {
+        const user = await User.findOne({email: req.user.email});
+
+        if(!user)
+            return res.status(400).json({message: "User don't exist"});
+        
+        return res.status(200).json(user);
+        
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({message: "Server error"});
+    }
+
+}
+
 const handleEditUser = async (req, res)=>{
     try {
         const {name, email, phone} = req.body;
@@ -91,5 +108,6 @@ module.exports = {
     handleSignUp,
     handleSignIn,
     handleEditUser,
-    handleDeleteUser 
+    handleDeleteUser,
+    handleGetUser
 }
